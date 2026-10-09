@@ -302,10 +302,22 @@ CLOSE = re.compile(r"(?:^|[\s;&|])(fi|esac|done|\})(?=$|[\s;&|)])")
 def code_of(block):
     return [l.strip() for l in block if l.strip() and not l.strip().startswith("#")]
 
+INIT_START = re.compile(r"#\s*>>>\s*\S+\s+initialize\s*>>>")   # conda/mamba init block
+INIT_END = re.compile(r"#\s*<<<\s*\S+\s+initialize\s*<<<")
+
 def blocks(lines):
-    out, cur, depth, start = [], [], 0, 0
+    out, cur, depth, start, region = [], [], 0, 0, False
     for n, line in enumerate(lines, 1):
         s = line.strip()
+        if region:                          # keep the whole init block together
+            cur.append(line)
+            if INIT_END.match(s):
+                out.append((start, n, code_of(cur)))
+                cur, region = [], False
+            continue
+        if not cur and INIT_START.match(s):
+            region, start, cur = True, n, [line]
+            continue
         if not cur and (not s or s.startswith("#")):
             continue
         if not cur:
@@ -332,6 +344,10 @@ def classify(code, target):
         if ".cargo/env" in text:      return "auto", "cargo env"
         if ".local/bin/env" in text:  return "auto", "~/.local/bin/env (uv)"
         if ".bash_aliases" in text:   return "auto", "~/.bash_aliases"
+    if "shell.bash" in text and "hook" in text:
+        return "manual", (f"conda/mamba init block for bash. Copy the whole block to {target} and change "
+                          "'shell.bash' to 'shell.zsh'. Do not run 'conda init zsh': it writes to ~/.zshrc, "
+                          "which install.sh regenerates.")
     if BASH_INIT.search(text):
         return "manual", f"bash-specific init. Copy it to {target} and replace 'bash' with 'zsh'."
     if "bash_completion" in text or re.search(r"^(complete|compgen)\s", text, re.M):
