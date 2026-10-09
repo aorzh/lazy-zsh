@@ -12,6 +12,8 @@ cd lazy-zsh
 ./install.sh --chsh
 ```
 
+`--chsh` makes zsh your default login shell (it runs `chsh -s $(command -v zsh)` and asks for your password).
+
 Then log out of your desktop session and log back in. Closing the terminal is not enough: the default shell is picked up at login.
 
 Without `--chsh` your default shell stays as it is, and you can start zsh only in the terminal you want. For WezTerm: `config.default_prog = { '/usr/bin/zsh', '-l' }`.
