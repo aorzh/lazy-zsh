@@ -466,6 +466,23 @@ Quick tips
   ~/.zshrc.local          your own PATH, functions, exports; never overwritten
   ZSH_THEME in ~/.zshrc   change the prompt theme (ls ~/.oh-my-zsh/themes)
   ./rollback.sh           undo everything and go back to bash
-
-Open a new terminal tab, or run: exec zsh -l
 TIPS
+
+echo
+bold() { printf '\033[1;33m%s\033[0m\n' "$*"; }
+LOGIN_SHELL="$(getent passwd "$USER" | cut -d: -f7)"
+if [[ "$LOGIN_SHELL" != *zsh ]]; then
+  # no --chsh: new terminals keep starting the old shell
+  bold "IMPORTANT: your default shell is still $LOGIN_SHELL, so a new terminal will NOT start zsh."
+  bold "Try zsh right now:  exec zsh -l"
+  bold "Make it default:    ./install.sh --chsh   (then log out and back in)"
+elif [[ "${SHELL:-}" != *zsh ]]; then
+  # default shell was just changed: it is picked up only at login
+  bold "IMPORTANT: log out of your desktop session and log back in."
+  bold "Closing the terminal is not enough, the default shell is picked up at login."
+else
+  echo "Open a new terminal tab, or run: exec zsh -l"
+fi
+if grep -q '^Terminals that still start bash' "$REPORT"; then
+  bold "Some terminals start bash explicitly, see 'Terminals that still start bash' above."
+fi

@@ -230,7 +230,10 @@ if [[ -n "$TERMS" ]]; then
   warn "These terminal settings still start zsh, change them by hand:"
   echo "$TERMS" | sed "s|$HOME|~|; s|^|    |"
 fi
-[[ "$CURRENT_SHELL" != "$TARGET_SHELL" ]] && \
-  echo "Log out of your desktop session and back in: the default shell is picked up at login."
 [[ -d "$TRASH" ]] && echo "Removed files are in $TRASH - delete it when you are sure: rm -rf \"$TRASH\""
+if [[ "$CURRENT_SHELL" != "$TARGET_SHELL" ]]; then
+  echo
+  printf '\033[1;33m%s\033[0m\n' "IMPORTANT: log out of your desktop session and log back in."
+  printf '\033[1;33m%s\033[0m\n' "Closing the terminal is not enough, the default shell is picked up at login."
+fi
 exit 0
